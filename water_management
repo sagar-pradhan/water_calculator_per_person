@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌍 Water Footprint Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #eef7ff;
+            color: #333;
+        }
+        .container {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 25px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #0056b3;
+            margin-bottom: 25px;
+        }
+        h2 {
+            color: #007BFF;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            font-weight: bold;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        input[type=number] { -moz-appearance: textfield; }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 25px;
+            background-color: #28a745;
+            color: white;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #result {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f0f9ff;
+            border: 1px solid #b3e0ff;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #0056b3;
+        }
+        .error {
+             color: #dc3545;
+             font-weight: normal;
+             font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌍 Water Footprint Calculator 🌏</h1>
+
+        <form id="waterFootprintForm">
+
+            <h2>🚿 Direct Water Use</h2>
+            <label for="showerTime">Average daily shower time (minutes):</label>
+            <input type="number" id="showerTime" name="showerTime" min="0" step="any" required value="5">
+
+            <label for="toiletFlushes">Number of toilet flushes per day:</label>
+            <input type="number" id="toiletFlushes" name="toiletFlushes" min="0" step="1" required value="4">
+
+            <label for="laundryLoads">Weekly laundry loads:</label>
+            <input type="number" id="laundryLoads" name="laundryLoads" min="0" step="any" required value="1">
+
+            <label for="dishwasherCycles">Weekly dishwasher cycles:</label>
+            <input type="number" id="dishwasherCycles" name="dishwasherCycles" min="0" step="any" required value="0">
+
+            <label for="tapTime">Minutes of tap running daily (washing hands, teeth, etc.):</label>
+            <input type="number" id="tapTime" name="tapTime" min="0" step="any" required value="3">
+
+            <h2>🍔 Food Consumption (Virtual Water)</h2>
+            <label for="meatMeals">Meat-based meals per day:</label>
+            <input type="number" id="meatMeals" name="meatMeals" min="0" step="any" required value="1">
+
+            <label for="vegMeals">Vegetarian meals per day:</label>
+            <input type="number" id="vegMeals" name="vegMeals" min="0" step="any" required value="2">
+
+            <label for="coffeeCups">Cups of coffee/tea daily:</label>
+            <input type="number" id="coffeeCups" name="coffeeCups" min="0" step="any" required value="2">
+
+            <h2>💡 Indirect Use (Virtual Water)</h2>
+            <label for="electricity">Daily electricity consumption (kWh):</label>
+            <input type="number" id="electricity" name="electricity" min="0" step="any" required value="5">
+
+            <label for="carDistance">Daily car distance driven (km):</label>
+            <input type="number" id="carDistance" name="carDistance" min="0" step="any" required value="10">
+
+            <button type="button" onclick="calculateFootprint()">Calculate My Footprint</button>
+
+        </form>
+
+        <div id="result">Enter your usage details above and click calculate.</div>
+
+    </div>
+
+    <script>
+        const SHOWER_PER_MIN = 10;
+        const TOILET_FLUSH = 6;
+        const LAUNDRY_LOAD = 50;
+        const DISHWASHER_CYCLE = 15;
+        const TAP_PER_MIN = 6;
+        const MEAT_MEAL = 3000;
+        const VEG_MEAL = 1000;
+        const COFFEE_CUP = 140;
+        const ELECTRICITY_PER_KWH = 2.5;
+        const CAR_PER_KM = 3;
+
+        function getInputValue(id) {
+            const element = document.getElementById(id);
+             element.style.borderColor = '#ccc';
+            const value = parseFloat(element.value);
+            if (isNaN(value) || value < 0) {
+                element.style.borderColor = '#dc3545';
+                return NaN;
+            }
+            return value;
+        }
+
+        function calculateFootprint() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = '';
+            resultDiv.classList.remove('error');
+
+            let hasError = false;
+
+            const showerTime = getInputValue('showerTime');
+            if (isNaN(showerTime)) hasError = true;
+
+            const toiletFlushes = getInputValue('toiletFlushes');
+             if (isNaN(toiletFlushes)) hasError = true;
+
+            const laundryLoadsWeekly = getInputValue('laundryLoads');
+             if (isNaN(laundryLoadsWeekly)) hasError = true;
+
+            const dishwasherCyclesWeekly = getInputValue('dishwasherCycles');
+             if (isNaN(dishwasherCyclesWeekly)) hasError = true;
+
+            const tapTime = getInputValue('tapTime');
+             if (isNaN(tapTime)) hasError = true;
+
+            const meatMeals = getInputValue('meatMeals');
+             if (isNaN(meatMeals)) hasError = true;
+
+            const vegMeals = getInputValue('vegMeals');
+             if (isNaN(vegMeals)) hasError = true;
+
+            const coffeeCups = getInputValue('coffeeCups');
+             if (isNaN(coffeeCups)) hasError = true;
+
+            const electricityKwh = getInputValue('electricity');
+             if (isNaN(electricityKwh)) hasError = true;
+
+            const carKm = getInputValue('carDistance');
+             if (isNaN(carKm)) hasError = true;
+
+            if (hasError) {
+                 resultDiv.textContent = 'Please check your inputs. All values must be non-negative numbers.';
+                 resultDiv.classList.add('error');
+                 return;
+            }
+
+            const shower = showerTime * SHOWER_PER_MIN;
+            const toilet = toiletFlushes * TOILET_FLUSH;
+            const laundry = (laundryLoadsWeekly / 7) * LAUNDRY_LOAD;
+            const dishes = (dishwasherCyclesWeekly / 7) * DISHWASHER_CYCLE;
+            const tap = tapTime * TAP_PER_MIN;
+            const meat = meatMeals * MEAT_MEAL;
+            const veg = vegMeals * VEG_MEAL;
+            const coffee = coffeeCups * COFFEE_CUP;
+            const electricity = electricityKwh * ELECTRICITY_PER_KWH;
+            const car = carKm * CAR_PER_KM;
+
+            const totalFootprint = shower + toilet + laundry + dishes + tap +
+                                   meat + veg + coffee + electricity + car;
+
+            resultDiv.textContent = `Your estimated daily water footprint is: ${totalFootprint.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} liters/day`;
+        }
+
+        const inputs = document.querySelectorAll('#waterFootprintForm input[type="number"]');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                 if (parseFloat(input.value) >= 0) {
+                    input.style.borderColor = '#ccc';
+                 }
+            });
+        });
+
+    </script>
+
+</body>
+</html>
